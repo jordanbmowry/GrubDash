@@ -9,7 +9,7 @@ const nextId = require('../utils/nextId');
 // TODO: Implement the /dishes handlers needed to make the tests pass
 
 // validation handlers
-const dishHasRequiredProperties = (req, res, next) => {
+const validateDishProperties = (req, res, next) => {
   const { data: { name, description, price, image_url } = {} } = req.body;
 
   if (name === undefined || name === '') {
@@ -44,7 +44,7 @@ const dishHasRequiredProperties = (req, res, next) => {
   next();
 };
 
-const dishHasCorrectId = (req, res, next) => {
+const validateDishId = (req, res, next) => {
   const { data: { id } = {} } = req.body;
   const { dishId } = req.params;
   const index = dishes.findIndex((dish) => dish.id === dishId);
@@ -104,8 +104,8 @@ const list = (req, res) => {
 };
 
 module.exports = {
-  create: [dishHasRequiredProperties, create],
-  read: [dishHasCorrectId, read],
-  update: [dishHasCorrectId, dishHasRequiredProperties, update],
+  create: [validateDishProperties, create],
+  read: [validateDishId, read],
+  update: [validateDishId, validateDishProperties, update],
   list,
 };

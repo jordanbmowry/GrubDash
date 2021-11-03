@@ -9,7 +9,7 @@ const nextId = require('../utils/nextId');
 // TODO: Implement the /orders handlers needed to make the tests pass
 
 // validation handlers
-const orderHasRequiredProperties = (req, res, next) => {
+const validateOrderProperties = (req, res, next) => {
   const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
 
   if (deliverTo === undefined || deliverTo === '') {
@@ -62,7 +62,7 @@ const orderHasRequiredProperties = (req, res, next) => {
   next();
 };
 
-const orderIdExists = (req, res, next) => {
+const validateOrderId = (req, res, next) => {
   const { data: { id } = {} } = req.body;
   const { orderId } = req.params;
 
@@ -163,14 +163,14 @@ const list = (req, res) => {
 };
 
 module.exports = {
-  create: [orderHasRequiredProperties, create],
-  read: [orderIdExists, read],
+  create: [validateOrderProperties, create],
+  read: [validateOrderId, read],
   update: [
-    orderIdExists,
-    orderHasRequiredProperties,
+    validateOrderId,
+    validateOrderProperties,
     validateOrderStatus,
     update,
   ],
-  delete: [orderIdExists, destroy],
+  delete: [validateOrderId, destroy],
   list,
 };
