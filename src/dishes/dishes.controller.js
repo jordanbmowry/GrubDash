@@ -47,19 +47,17 @@ const dishHasRequiredProperties = (req, res, next) => {
 const dishHasCorrectId = (req, res, next) => {
   const { data: { id } = {} } = req.body;
   const { dishId } = req.params;
-  const foundDish = dishes.find((dish) => dish.id === dishId);
   const index = dishes.findIndex((dish) => dish.id === dishId);
-  res.locals.foundDish = foundDish;
   res.locals.index = index;
   res.locals.dishId = dishId;
 
-  if (!foundDish || index === -1) {
+  if (index === -1) {
     return next({
       status: 404,
       message: `Dish does not exist: ${dishId}`,
     });
   } else if (id) {
-    foundDish.id === id
+    dishes[index].id === id
       ? next()
       : next({
           status: 400,
@@ -71,18 +69,18 @@ const dishHasCorrectId = (req, res, next) => {
 };
 
 // Route handlers
-// GET /dishes/:dishId
-//GET /dishes
+// POST / dishes;
 const create = (req, res) => {
   const newDishWithId = { ...res.locals.newDish.data, id: nextId() };
   dishes.push(newDishWithId);
   res.status(201).json({ data: newDishWithId });
 };
-
+//GET /dishes/:dishId
 const read = (req, res) => {
-  res.status(200).json({ data: res.locals.foundDish });
+  const { index } = res.locals;
+  res.status(200).json({ data: dishes[index] });
 };
-
+// PUT /dishes/:dishId
 const update = (req, res) => {
   const { index, dishId } = res.locals;
   const {
@@ -108,6 +106,6 @@ const list = (req, res) => {
 module.exports = {
   create: [dishHasRequiredProperties, create],
   read: [dishHasCorrectId, read],
-  update: [dishHasRequiredProperties, dishHasCorrectId, update],
+  update: [dishHasCorrectId, dishHasRequiredProperties, update],
   list,
 };
