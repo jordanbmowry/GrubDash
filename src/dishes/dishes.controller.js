@@ -6,10 +6,8 @@ const dishes = require(path.resolve('src/data/dishes-data'));
 // Use this function to assign ID's when necessary
 const nextId = require('../utils/nextId');
 
-// TODO: Implement the /dishes handlers needed to make the tests pass
-
 // validation handlers
-const validateDishProperties = (req, res, next) => {
+function validateDishProperties(req, res, next) {
   const { data: { name, description, price, image_url } = {} } = req.body;
 
   if (name === undefined || name === '') {
@@ -42,9 +40,9 @@ const validateDishProperties = (req, res, next) => {
   };
   res.locals.newDish = newDish;
   next();
-};
+}
 
-const validateDishId = (req, res, next) => {
+function validateDishId(req, res, next) {
   const { data: { id } = {} } = req.body;
   const { dishId } = req.params;
   const index = dishes.findIndex((dish) => dish.id === dishId);
@@ -66,22 +64,22 @@ const validateDishId = (req, res, next) => {
   } else {
     next();
   }
-};
+}
 
 // Route handlers
 // POST / dishes;
-const create = (req, res) => {
+function create(req, res) {
   const newDishWithId = { ...res.locals.newDish.data, id: nextId() };
   dishes.push(newDishWithId);
   res.status(201).json({ data: newDishWithId });
-};
+}
 //GET /dishes/:dishId
-const read = (req, res) => {
+function read(req, res) {
   const { index } = res.locals;
   res.status(200).json({ data: dishes[index] });
-};
+}
 // PUT /dishes/:dishId
-const update = (req, res) => {
+function update(req, res) {
   const { index, dishId } = res.locals;
   const {
     data: { id, ...rest },
@@ -94,14 +92,14 @@ const update = (req, res) => {
       ...rest,
     },
   });
-};
+}
 
 // GET /dishes
-const list = (req, res) => {
+function list(req, res) {
   res.status(200).json({
     data: dishes,
   });
-};
+}
 
 module.exports = {
   create: [validateDishProperties, create],
