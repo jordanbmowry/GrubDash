@@ -3,13 +3,11 @@ const path = require('path');
 // Use the existing order data
 const orders = require(path.resolve('src/data/orders-data'));
 
-// Use this function to assigh ID's when necessary
+// Use this function to assign ID's when necessary
 const nextId = require('../utils/nextId');
 
-// TODO: Implement the /orders handlers needed to make the tests pass
-
 // validation handlers
-const validateOrderProperties = (req, res, next) => {
+function validateOrderProperties(req, res, next) {
   const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
 
   if (deliverTo === undefined || deliverTo === '') {
@@ -60,9 +58,9 @@ const validateOrderProperties = (req, res, next) => {
 
   res.locals.newOrder = newOrder;
   next();
-};
+}
 
-const validateOrderId = (req, res, next) => {
+function validateOrderId(req, res, next) {
   const { data: { id } = {} } = req.body;
   const { orderId } = req.params;
 
@@ -87,9 +85,9 @@ const validateOrderId = (req, res, next) => {
   } else {
     next();
   }
-};
+}
 
-const validateOrderStatus = (req, res, next) => {
+function validateOrderStatus(req, res, next) {
   const { data: { status } = {} } = req.body;
   const { status: foundStatus } = res.locals.foundOrder;
 
@@ -108,11 +106,22 @@ const validateOrderStatus = (req, res, next) => {
   }
   res.locals.changedOrder = req.body.data;
   next();
-};
+}
+
+function validateStatusEqualsPending(req, res, next) {
+  const { foundOrder } = res.locals;
+  if (foundOrder.status !== 'pending') {
+    return next({
+      status: 400,
+      message: 'An order cannot be deleted unless it is pending',
+    });
+  }
+  next();
+}
 
 // Route handlers
 // POST /orders
-const create = (req, res) => {
+function create(req, res) {
   const { newOrder } = res.locals;
 
   const newOrderWithId = { ...newOrder, id: nextId() };
@@ -121,15 +130,15 @@ const create = (req, res) => {
   res.status(201).json({
     data: newOrderWithId,
   });
-};
+}
 //GET /orders/:orderId
-const read = (req, res) => {
+function read(req, res) {
   const { foundOrder } = res.locals;
   res.status(200).json({ data: foundOrder });
-};
+}
 
 // PUT /orders/:orderId
-const update = (req, res) => {
+function update(req, res) {
   const { index, id } = res.locals;
   const changedOrder = {
     ...res.locals.changedOrder,
@@ -140,27 +149,21 @@ const update = (req, res) => {
   res.status(200).json({
     data: changedOrder,
   });
-};
+}
 
 // DELETE /orders/:orderId
-const destroy = (req, res, next) => {
-  const { index, foundOrder } = res.locals;
-  if (foundOrder.status !== 'pending') {
-    return next({
-      status: 400,
-      message: 'An order cannot be deleted unless it is pending',
-    });
-  }
+function destroy(req, res, next) {
+  const { index } = res.locals;
   orders.splice(index, 1);
   res.sendStatus(204);
-};
+}
 
 // GET /orders
-const list = (req, res) => {
+function list(req, res) {
   res.status(200).json({
     data: orders,
   });
-};
+}
 
 module.exports = {
   create: [validateOrderProperties, create],
@@ -171,6 +174,6 @@ module.exports = {
     validateOrderStatus,
     update,
   ],
-  delete: [validateOrderId, destroy],
+  delete: [validateOrderId, validateStatusEqualsPending, destroy],
   list,
 };
